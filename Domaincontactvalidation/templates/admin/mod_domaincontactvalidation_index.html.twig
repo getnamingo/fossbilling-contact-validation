@@ -1,0 +1,300 @@
+{% extends request.ajax ? "layout_blank.html.twig" : "layout_default.html.twig" %}
+
+{% block meta_title %}{{ 'Domain Contact Validation'|trans }}{% endblock %}
+{% set active_menu = 'client' %}
+
+{% block content %}
+<style>
+    .dcv-wrap .dcv-stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .dcv-wrap .dcv-stat-label { font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .dcv-wrap .dcv-log { max-height: 360px; overflow: auto; white-space: pre-wrap; background: #f8fafc; }
+    .dcv-wrap .dcv-action-card { border: 1px solid rgba(0,0,0,.08); border-radius: .5rem; padding: 1rem; margin-bottom: .75rem; background: rgba(248,250,252,.7); }
+    .dcv-wrap .table td { vertical-align: middle; }
+    .dcv-wrap .dcv-muted { color: #6c757d; }
+    .dcv-wrap .dcv-token { word-break: break-all; }
+</style>
+
+<div class="dcv-wrap">
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <div>
+                <h3 class="card-title mb-0">{{ 'Domain Contact Validation'|trans }}</h3>
+                <div class="text-muted small">{{ 'Review registrant contact validation status, open a client record, and manually mark validation decisions with audit notes.'|trans }}</div>
+            </div>
+            <a href="{{ 'extension/settings/domaincontactvalidation'|url }}" class="btn btn-outline-secondary btn-sm">{{ 'Settings'|trans }}</a>
+        </div>
+    </div>
+
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card"><div class="card-body">
+                <div class="dcv-stat-value">{{ stats.total_clients }}</div>
+                <div class="dcv-stat-label">{{ 'Total Clients'|trans }}</div>
+                <div class="text-muted small">{{ 'All FOSSBilling clients'|trans }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card"><div class="card-body">
+                <div class="dcv-stat-value">{{ stats.validated }}</div>
+                <div class="dcv-stat-label">{{ 'Validated'|trans }}</div>
+                <div class="text-muted small">{{ 'Validation passed'|trans }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card"><div class="card-body">
+                <div class="dcv-stat-value">{{ stats.unvalidated }}</div>
+                <div class="dcv-stat-label">{{ 'Unvalidated'|trans }}</div>
+                <div class="text-muted small">{{ 'Missing or pending validation'|trans }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card"><div class="card-body">
+                <div class="dcv-stat-value">{{ stats.tokens_open }}</div>
+                <div class="dcv-stat-label">{{ 'Tokens Open'|trans }}</div>
+                <div class="text-muted small">{{ 'Token generated, not validated'|trans }}</div>
+            </div></div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link{% if tab == 'unvalidated' %} active{% endif %}" href="{{ 'domaincontactvalidation?tab=unvalidated'|url }}">{{ 'Unvalidated / Pending'|trans }}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link{% if tab == 'validated' %} active{% endif %}" href="{{ 'domaincontactvalidation?tab=validated'|url }}">{{ 'Validated'|trans }}</a>
+        </li>
+        {% if tab == 'details' %}
+        <li class="nav-item">
+            <a class="nav-link active" href="#">{{ 'Client Details'|trans }}</a>
+        </li>
+        {% endif %}
+    </ul>
+
+    {% if tab == 'details' %}
+        {% set client = details.client %}
+        {% set validation = details.validation %}
+        <div class="card mb-3">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h3 class="card-title mb-0">#{{ client.id }}: {{ client.name }}</h3>
+                {% if details.is_validated %}
+                    <span class="badge bg-success text-success-fg">{{ 'Validated'|trans }}</span>
+                {% else %}
+                    <span class="badge bg-warning text-warning-fg">{{ 'Unvalidated'|trans }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>{{ 'Registrant Contact'|trans }}</h4>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr><th style="width: 150px">{{ 'Client'|trans }}</th><td><a href="{{ ('client/manage/' ~ client.id)|url }}">{{ client.name }}</a></td></tr>
+                                    <tr><th>{{ 'Company'|trans }}</th><td>{{ client.company|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Email'|trans }}</th><td><a href="mailto:{{ client.email }}">{{ client.email }}</a></td></tr>
+                                    <tr><th>{{ 'Phone'|trans }}</th><td>{{ client.phone_full|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Address'|trans }}</th><td>{{ client.address_full|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Client Status'|trans }}</th><td>{{ client.status|default('-', true) }}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>{{ 'Validation Record'|trans }}</h4>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr><th style="width: 150px">{{ 'Status'|trans }}</th><td>{% if details.is_validated %}<span class="badge bg-success text-success-fg">{{ 'Validated'|trans }}</span>{% else %}<span class="badge bg-warning text-warning-fg">{{ 'Unvalidated'|trans }}</span>{% endif %}</td></tr>
+                                    <tr><th>{{ 'Method'|trans }}</th><td>{{ validation.validation_method|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Checked At'|trans }}</th><td>{{ validation.validation_checked_at_formatted|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Created At'|trans }}</th><td>{{ validation.created_at_formatted|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Updated At'|trans }}</th><td>{{ validation.updated_at_formatted|default('-', true) }}</td></tr>
+                                    <tr><th>{{ 'Token'|trans }}</th><td>{% if validation.validation_token|default('', true) %}<code class="dcv-token">{{ validation.validation_token }}</code>{% else %}-{% endif %}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <h4>{{ 'Audit Log'|trans }}</h4>
+                        <pre><code>{{ validation.validation_log|default('No validation log yet.', true) }}</code></pre>
+                    </div>
+                    <div class="col-md-5">
+                        <h4>{{ 'Admin Actions'|trans }}</h4>
+
+                        <form class="dcv-action-card" onsubmit="return dcvSubmitAction(this, 'validate', {{ client.id }});">
+                            <input type="text" name="validation_method" value="{{ default_method }}" class="form-control form-control-sm mb-2" placeholder="{{ 'Validation method'|trans }}">
+                            <textarea name="note" class="form-control" rows="2" placeholder="{{ 'Document what you checked: email confirmation, phone call, KYC, registry response, etc.'|trans }}"></textarea>
+                            <button type="submit" class="btn btn-success w-100 mt-2">{{ 'Mark as Validated'|trans }}</button>
+                        </form>
+
+                        <form class="dcv-action-card" onsubmit="return dcvSubmitAction(this, 'unvalidate', {{ client.id }});">
+                            <input type="text" name="validation_method" value="{{ default_method }}" class="form-control form-control-sm mb-2" placeholder="{{ 'Validation method'|trans }}">
+                            <textarea name="note" class="form-control" rows="2" placeholder="{{ 'Reason: failed checks, stale data, abuse case, bounced email, etc.'|trans }}"></textarea>
+                            <button type="submit" class="btn btn-warning w-100 mt-2">{{ 'Mark as Unvalidated'|trans }}</button>
+                        </form>
+
+                        <form class="dcv-action-card" onsubmit="return dcvSubmitAction(this, 'reset_token', {{ client.id }});">
+                            <input type="hidden" name="validation_method" value="token_generated">
+                            <textarea name="note" class="form-control" rows="2" placeholder="{{ 'Use when you want to start or restart a token-based validation flow later.'|trans }}"></textarea>
+                            <button type="submit" class="btn btn-info w-100 mt-2">{{ 'Generate / Reset Token'|trans }}</button>
+                        </form>
+
+                        <form class="dcv-action-card" onsubmit="return dcvSubmitAction(this, 'save_note', {{ client.id }});">
+                            <input type="hidden" name="validation_method" value="{{ default_method }}">
+                            <textarea name="note" class="form-control" rows="2" placeholder="{{ 'Free-form internal note without changing status.'|trans }}"></textarea>
+                            <button type="submit" class="btn btn-secondary w-100 mt-2">{{ 'Add Audit Note'|trans }}</button>
+                        </form>
+                    </div>
+                </div>
+
+                <a class="btn btn-outline-secondary" href="{{ ('domaincontactvalidation?tab=' ~ (details.is_validated ? 'validated' : 'unvalidated'))|url }}">&larr; {{ 'Back to list'|trans }}</a>
+            </div>
+        </div>
+    {% else %}
+        {% set list_title = tab == 'validated' ? 'Validated Contacts' : 'Unvalidated / Pending Contacts' %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">{{ list_title|trans }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ 'domaincontactvalidation'|url }}" class="row g-2 align-items-center mb-3">
+                    <input type="hidden" name="tab" value="{{ tab }}">
+                    <div class="col-md-6 col-lg-5">
+                        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="{{ 'Search ID, name, company, email, phone...'|trans }}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">{{ 'Search'|trans }}</button>
+                    </div>
+                    <div class="col-auto">
+                        <a class="btn btn-outline-secondary" href="{{ ('domaincontactvalidation?tab=' ~ tab)|url }}">{{ 'Reset'|trans }}</a>
+                    </div>
+                </form>
+
+                {% if contacts.list is empty %}
+                    <div class="alert alert-info">{{ 'No contacts found.'|trans }}</div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-vcenter table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'ID'|trans }}</th>
+                                    <th>{{ 'Client'|trans }}</th>
+                                    <th>{{ 'Email'|trans }}</th>
+                                    <th>{{ 'Phone'|trans }}</th>
+                                    <th>{{ 'Country'|trans }}</th>
+                                    <th>{{ 'Status'|trans }}</th>
+                                    <th>{{ 'Method'|trans }}</th>
+                                    <th>{{ 'Checked'|trans }}</th>
+                                    <th class="text-end">{{ 'Actions'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in contacts.list %}
+                                <tr>
+                                    <td>#{{ row.id }}</td>
+                                    <td>
+                                        <a href="{{ ('client/manage/' ~ row.id)|url }}">{{ row.name }}</a>
+                                        {% if row.company|default('', true) %}<span class="text-muted">({{ row.company }})</span>{% endif %}
+                                    </td>
+                                    <td><a href="mailto:{{ row.email }}">{{ row.email }}</a></td>
+                                    <td>{{ row.phone_full|default('-', true) }}</td>
+                                    <td>{{ row.country|default('-', true) }}</td>
+                                    <td>
+                                        {% if row.is_validated == 1 %}
+                                            <span class="badge bg-success text-success-fg">{{ 'Validated'|trans }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-warning-fg">{{ 'Unvalidated'|trans }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ row.validation_method|default('-', true) }}</td>
+                                    <td>{{ row.validation_checked_at_formatted|default('-', true) }}</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-secondary" href="{{ ('domaincontactvalidation?tab=details&client_id=' ~ row.id)|url }}">{{ 'Open'|trans }}</a>
+                                        {% if quick_actions %}
+                                            {% if row.is_validated == 1 %}
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="dcvQuickAction('unvalidate', {{ row.id }}, '{{ default_method|e('js') }}');">{{ 'Unvalidate'|trans }}</button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-success" onclick="dcvQuickAction('validate', {{ row.id }}, '{{ default_method|e('js') }}');">{{ 'Validate'|trans }}</button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">
+                            {{ 'Showing page'|trans }} {{ contacts.page }} {{ 'of'|trans }} {{ contacts.pages }} — {{ contacts.total }} {{ 'record(s)'|trans }}
+                        </div>
+                        {% if contacts.pages > 1 %}
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item{% if contacts.page <= 1 %} disabled{% endif %}">
+                                <a class="page-link" href="{{ ('domaincontactvalidation?tab=' ~ tab ~ '&q=' ~ q|url_encode ~ '&page=' ~ (contacts.page - 1))|url }}">&laquo;</a>
+                            </li>
+                            {% for p in contacts.page_numbers %}
+                                <li class="page-item{% if p == contacts.page %} active{% endif %}">
+                                    <a class="page-link" href="{{ ('domaincontactvalidation?tab=' ~ tab ~ '&q=' ~ q|url_encode ~ '&page=' ~ p)|url }}">{{ p }}</a>
+                                </li>
+                            {% endfor %}
+                            <li class="page-item{% if contacts.page >= contacts.pages %} disabled{% endif %}">
+                                <a class="page-link" href="{{ ('domaincontactvalidation?tab=' ~ tab ~ '&q=' ~ q|url_encode ~ '&page=' ~ (contacts.page + 1))|url }}">&raquo;</a>
+                            </li>
+                        </ul>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function dcvApiMessage(result, fallback) {
+        if (result && result.message) {
+            return result.message;
+        }
+        return fallback;
+    }
+
+    function dcvSubmitAction(form, action, clientId) {
+        var data = {
+            client_id: clientId,
+            validation_method: form.validation_method ? form.validation_method.value : '{{ default_method|e('js') }}',
+            note: form.note ? form.note.value : ''
+        };
+
+        FOSSBilling.api.admin.post('domaincontactvalidation/' + action, data, function(result) {
+            FOSSBilling.message(dcvApiMessage(result, 'Saved'));
+            setTimeout(function () {
+                window.location.reload();
+            }, 1500);
+        }, function(result) {
+            FOSSBilling.message(dcvApiMessage(result, 'Unable to save'), 'error');
+        });
+
+        return false;
+    }
+
+    function dcvQuickAction(action, clientId, method) {
+        FOSSBilling.api.admin.post('domaincontactvalidation/' + action, {
+            client_id: clientId,
+            validation_method: method || '{{ default_method|e('js') }}',
+            note: 'Quick action from contact validation list'
+        }, function(result) {
+            FOSSBilling.message(dcvApiMessage(result, 'Saved'));
+            setTimeout(function () {
+                window.location.reload();
+            }, 1500);
+        }, function(result) {
+            FOSSBilling.message(dcvApiMessage(result, 'Unable to save'), 'error');
+        });
+    }
+</script>
+{% endblock %}

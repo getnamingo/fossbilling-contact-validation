@@ -1,0 +1,40 @@
+{% extends request.ajax ? 'layout_blank.html.twig' : 'layout_default.html.twig' %}
+
+{% block meta_title %}{{ 'Domain Contact Validation Settings'|trans }}{% endblock %}
+{% set active_menu = 'domaincontactvalidation' %}
+
+{% block content %}
+{% set params = admin.extension_config_get({ 'ext': 'mod_domaincontactvalidation' }) %}
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h3 class="card-title">{{ 'Domain Contact Validation Settings'|trans }}</h3>
+            <p class="card-subtitle">{{ 'Configure the admin contact validation interface.'|trans }}</p>
+        </div>
+    </div>
+    <form method="post" action="{{ 'extension/config_save'|api_url }}" {{ fb_api_form({ message: 'Configuration Updated'|trans }) }}>
+        <input type="hidden" name="ext" value="mod_domaincontactvalidation">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">{{ 'Records per page'|trans }}</label>
+                <input type="number" class="form-control" name="records_per_page" value="{{ params.records_per_page|default(25) }}" min="1" max="200">
+                <div class="form-hint">{{ 'Default: 25. Maximum supported by the module: 200.'|trans }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ 'Default manual validation method'|trans }}</label>
+                <input type="text" class="form-control" name="default_validation_method" value="{{ params.default_validation_method|default('admin_manual') }}" maxlength="100">
+                <div class="form-hint">{{ 'Stored in domain_contact_validation.validation_method when an admin validates a contact.'|trans }}</div>
+            </div>
+            <input type="hidden" name="enable_quick_actions" value="0">
+            <label class="form-check form-switch form-switch-2">
+                <input class="form-check-input" name="enable_quick_actions" value="1" type="checkbox" {% if params.enable_quick_actions is not defined or params.enable_quick_actions %}checked{% endif %}>
+                <span class="form-check-label">{{ 'Enable quick actions in list tables'|trans }}</span>
+            </label>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{{ 'domaincontactvalidation'|url }}" class="btn btn-outline-secondary">{{ 'Back'|trans }}</a>
+            <button type="submit" class="btn btn-primary">{{ 'Update'|trans }}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
