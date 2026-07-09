@@ -260,7 +260,52 @@
         if (result && result.message) {
             return result.message;
         }
+        if (result && result.error && result.error.message) {
+            return result.error.message;
+        }
         return fallback;
+    }
+
+    function dcvFlashAfterReload(message, type) {
+        try {
+            sessionStorage.setItem('dcv_flash_message', message || 'Saved');
+            sessionStorage.setItem('dcv_flash_type', type || 'success');
+        } catch (e) {
+            // Ignore storage errors and just reload.
+        }
+
+        window.location.reload();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            var message = sessionStorage.getItem('dcv_flash_message');
+            var type = sessionStorage.getItem('dcv_flash_type') || 'success';
+
+            if (message) {
+                sessionStorage.removeItem('dcv_flash_message');
+                sessionStorage.removeItem('dcv_flash_type');
+
+                if (window.FOSSBilling && FOSSBilling.message) {
+                    FOSSBilling.message(message, type);
+                }
+            }
+        } catch (e) {
+            // Ignore storage errors.
+        }
+    });
+
+    function dcvPost(action, data) {
+        if (!window.FOSSBilling || !FOSSBilling.api || !FOSSBilling.api.admin) {
+            alert('FOSSBilling admin API JavaScript is not loaded. Please refresh the page and clear FOSSBilling cache.');
+            return;
+        }
+
+        FOSSBilling.api.admin.post('domaincontactvalidation/' + action, data, function(result) {
+            dcvFlashAfterReload(dcvApiMessage(result, 'Saved'), 'success');
+        }, function(result) {
+            FOSSBilling.message(dcvApiMessage(result, 'Unable to save'), 'error');
+        });
     }
 
     function dcvSubmitAction(form, action, clientId) {
@@ -270,30 +315,16 @@
             note: form.note ? form.note.value : ''
         };
 
-        FOSSBilling.api.admin.post('domaincontactvalidation/' + action, data, function(result) {
-            FOSSBilling.message(dcvApiMessage(result, 'Saved'));
-            setTimeout(function () {
-                window.location.reload();
-            }, 1500);
-        }, function(result) {
-            FOSSBilling.message(dcvApiMessage(result, 'Unable to save'), 'error');
-        });
+        dcvPost(action, data);
 
         return false;
     }
 
     function dcvQuickAction(action, clientId, method) {
-        FOSSBilling.api.admin.post('domaincontactvalidation/' + action, {
+        dcvPost(action, {
             client_id: clientId,
             validation_method: method || '{{ default_method|e('js') }}',
             note: 'Quick action from contact validation list'
-        }, function(result) {
-            FOSSBilling.message(dcvApiMessage(result, 'Saved'));
-            setTimeout(function () {
-                window.location.reload();
-            }, 1500);
-        }, function(result) {
-            FOSSBilling.message(dcvApiMessage(result, 'Unable to save'), 'error');
         });
     }
 </script>

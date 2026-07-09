@@ -10,7 +10,9 @@ mv fossbilling-contact-validation/Domaincontactvalidation /var/www/modules/
 
 Navigate to **Extensions → Overview** in the FOSSBilling admin area and enable **"Domain Contact Validation"**.
 
-Once activated, configure the plugin via the settings action in Extensions page.
+After activating the module, open the **Extensions** page and use the module’s **Settings** action to review and adjust its configuration.
+
+**Requirement:** This module requires FOSSBilling 0.8.3 or later.
 
 ## Usage Instructions
 
