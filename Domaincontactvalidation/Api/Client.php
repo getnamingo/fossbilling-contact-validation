@@ -19,7 +19,10 @@ class Client extends \FOSSBilling\Api\AbstractApi
     public function get_status(): array
     {
         // Never accept client_id from the request.
-        $clientId = (int) $this->getIdentity()->id;
+        $identity = $this->getIdentity();
+        $clientId = method_exists($identity, 'getId')
+            ? (int) $identity->getId()
+            : (int) $identity->id;
 
         $row = $this->getDi()['db']->getRow(
             'SELECT
@@ -56,9 +59,7 @@ class Client extends \FOSSBilling\Api\AbstractApi
                 ? 'validated'
                 : ($hasOpenToken ? 'pending' : 'unvalidated'),
             'is_validated' => $isValidated,
-            'verified_by' => $isValidated
-                ? ($row['validated_by'] ?: 'Staff')
-                : null,
+            'verified_by' => $isValidated ? 'Staff' : null,
             'verified_at' => $isValidated
                 ? $row['validation_checked_at']
                 : null,
