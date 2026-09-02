@@ -357,9 +357,9 @@ class Admin extends \FOSSBilling\Api\AbstractApi
     {
         try {
             $admin = $this->getDi()['loggedin_admin'];
-            $name = trim((string) ($admin->name ?? ''));
-            $email = trim((string) ($admin->email ?? ''));
-            $id = (int) ($admin->id ?? 0);
+            $name = trim((string) (method_exists($admin, 'getName') ? $admin->getName() : ($admin->name ?? '')));
+            $email = trim((string) (method_exists($admin, 'getEmail') ? $admin->getEmail() : ($admin->email ?? '')));
+            $id = (int) (method_exists($admin, 'getId') ? $admin->getId() : ($admin->id ?? 0));
 
             return ($name ?: $email ?: 'admin') . ($id > 0 ? ' (#' . $id . ')' : '');
         } catch (\Throwable) {
@@ -376,7 +376,7 @@ class Admin extends \FOSSBilling\Api\AbstractApi
                  VALUES (:priority, :admin_id, :client_id, :message, :ip, NOW())',
                 [
                     ':priority' => 6,
-                    ':admin_id' => (int) ($admin->id ?? 0),
+                    ':admin_id' => (int) (method_exists($admin, 'getId') ? $admin->getId() : ($admin->id ?? 0)),
                     ':client_id' => $clientId,
                     ':message' => $message,
                     ':ip' => $_SERVER['REMOTE_ADDR'] ?? null,
