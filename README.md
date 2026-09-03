@@ -1,5 +1,5 @@
-# FOSSBilling Contact Validation
-ICANN / NIS2-style registrant contact validation tracking.
+# Registrant Validation Management for FOSSBilling
+Administrative interface for reviewing and managing ICANN / NIS2-style registrant contact validation status.
 
 ## Installation
 
@@ -8,7 +8,7 @@ git clone https://github.com/getnamingo/fossbilling-contact-validation
 mv fossbilling-contact-validation/Domaincontactvalidation /var/www/modules/
 ```
 
-Navigate to **Extensions → Overview** in the FOSSBilling admin area and enable **"Domain Contact Validation"**.
+Navigate to **Extensions → Overview** in the FOSSBilling admin area and enable **"Registrant Validation Management"**.
 
 After activating the module, open the **Extensions** page and use the module’s **Settings** action to review and adjust its configuration.
 
@@ -16,7 +16,7 @@ After activating the module, open the **Extensions** page and use the module’s
 
 ## Usage Instructions
 
-This module is a **FOSSBilling Contact Validation for FOSSBilling and Namingo Registrar**.  
+This module is a **Registrant Validation Management for FOSSBilling and Namingo Registrar**.  
 It is an integral part of the **Namingo Registrar** project and is intended to be used as the FOSSBilling integration layer for registrar operations.
 
 Detailed, step-by-step usage instructions are provided as part of the Namingo Registrar documentation and project resources.
@@ -38,7 +38,7 @@ We appreciate your involvement and patience as Namingo continues to grow and ada
 
 ## Support This Project
 
-If you find FOSSBilling Contact Validation useful, consider donating:
+If you find Registrant Validation Management useful, consider donating:
 
 - [Donate via Stripe](https://donate.stripe.com/7sI2aI4jV3Offn28ww)
 - BTC: `bc1q9jhxjlnzv0x4wzxfp8xzc6w289ewggtds54uqa`
@@ -46,4 +46,4 @@ If you find FOSSBilling Contact Validation useful, consider donating:
 
 ## Licensing
 
-FOSSBilling Contact Validation is licensed under the MIT License.
+Registrant Validation Management is licensed under the MIT License.

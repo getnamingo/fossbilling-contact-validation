@@ -1,6 +1,6 @@
 {% extends request.ajax ? "layout_blank.html.twig" : "layout_default.html.twig" %}
 
-{% block meta_title %}{{ 'Domain Contact Validation'|trans }}{% endblock %}
+{% block meta_title %}{{ 'Registrant Validation Management'|trans }}{% endblock %}
 {% set active_menu = 'client' %}
 
 {% block content %}
@@ -18,7 +18,7 @@
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center justify-content-between">
             <div>
-                <h3 class="card-title mb-0">{{ 'Domain Contact Validation'|trans }}</h3>
+                <h3 class="card-title mb-0">{{ 'Registrant Validation Management'|trans }}</h3>
                 <div class="text-muted small">{{ 'Review registrant contact validation status, open a client record, and manually mark validation decisions with audit notes.'|trans }}</div>
             </div>
             <a href="{{ 'extension/settings/domaincontactvalidation'|url }}" class="btn btn-outline-secondary btn-sm">{{ 'Settings'|trans }}</a>

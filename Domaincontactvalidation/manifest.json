@@ -1,12 +1,12 @@
 {
   "id": "domaincontactvalidation",
   "type": "mod",
-  "name": "Domain Contact Validation",
-  "description": "Displays ICANN / NIS2-style registrant contact validation tracking.",
+  "name": "Registrant Validation Management",
+  "description": "Administrative interface for reviewing and managing ICANN / NIS2-style registrant contact validation status",
   "icon_url": "icon.svg",
   "homepage_url": "https://namingo.org",
   "author": "Namingo",
   "author_url": "https://namingo.org",
   "license": "MIT",
-  "version": "1.0.2"
+  "version": "1.0.3"
 }
